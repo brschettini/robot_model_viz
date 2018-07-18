@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<robot name="first_jiro" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+
+<!-- Constants declared -->
+<xacro:property name="base_mass" value="1.0" />
+<xacro:property name="base_wid" value="1.0" />
+<xacro:property name="base_dep" value="1.0" />
+<xacro:property name="base_hei" value="0.5" />
+
+<xacro:property name="arm_radius" value="0.25"/>
+<xacro:property name="arm_length" value="2.5"/>
+
+<xacro:macro name="inertial_box" params="width depth height mass">
+  <inertial>
+    <mass value="${mass}"/>
+    <inertia ixx="${mass*(height*height+depth*depth)/12}" ixy="0.0" ixz="0.0" 
+      iyy="${mass*(width*width+depth*depth)/12}" iyz="0.0" 
+      izz="${mass*(height*height+width*width)/12}"/>
+  </inertial>
+</xacro:macro>
+
+
+<!-- Materials -->
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+<!-- Links Declaration -->
+
+
+
+  <link name="base_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 ${base_hei/2}"/>
+      <geometry>
+        <!-- <box size="${base_wid} ${base_dep} ${base_hei}"/> -->
+     
+          <mesh filename="package://jiro_robot_model/meshes/cube.dae"/>
+        
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 ${base_hei/2}"/>
+      <geometry>
+        <box size="${base_wid} ${base_dep} ${base_hei}"/>
+      </geometry>
+    </collision>
+    <xacro:inertial_box width="${base_wid}" height="${base_hei}" depth="${base_dep}" mass="${base_mass}"/>
+  </link>
+
+  <link name="arm_link">
+    <visual>
+      <geometry>
+        <cylinder length="${arm_length}" radius="${arm_radius}"/>
+      </geometry>
+      <origin rpy="1.5707 0 0" xyz="${arm_radius} 1.0 0"/>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="${arm_length}" radius="${arm_radius}"/>
+      </geometry>
+      <origin rpy="1.5707 0 0" xyz="${arm_radius} 1.0 0"/>
+    </collision>
+    <xacro:inertial_box width="${base_wid}" height="${base_hei}" depth="${base_dep}" mass="${base_mass}"/>
+  </link>
+
+  <link name="table">
+    <visual>
+      <geometry>
+        <box size="1.0 1.0 0.5"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="-0.5 0.25 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="1.0 1.0 0.5"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="-0.5 0.25 0"/>
+    </collision>
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="0.104" iyy="0.166" izz="0.104" ixy="0.0" 
+      ixz="0.0" iyz="0.0"/>
+    </inertial>
+  </link>
+
+<!-- Joints Declaration -->
+
+  <joint name="base_joint" type="revolute">
+    <axis xyz="1 0 0"/>
+    <limit effort="1000.0" lower="0.0" upper="1.5707" velocity="0.1"/>
+    <parent link="base_link"/>
+    <child link="arm_link"/>
+    <origin rpy="0 0 0" xyz="0.5 -0.25 0.25"/>
+  </joint>
+
+
+  <joint name="table_joint" type="revolute">
+    <axis xyz="-1 0 0"/>
+    <limit effort="1000.0" lower="0.0" upper="1.5707" velocity="0.1"/>
+    <mimic joint="base_joint" multiplier="1"/>
+    <parent link="arm_link"/>
+    <child link="table"/>
+    <origin rpy="0 0 0" xyz="0 2.25 0"/>
+  </joint>
+
+</robot>
